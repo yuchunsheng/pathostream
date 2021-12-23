@@ -1,0 +1,2 @@
+FLASK_APP=pathostream.py
+FLASK_ENV=development
