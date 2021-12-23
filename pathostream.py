@@ -11,18 +11,17 @@ if os.path.exists(dotenv_path):
 #     COV = coverage.coverage(branch=True, include='app/*')
 #     COV.start()
 
-import sys
-import click
+# import sys
+# import click
 from flask_migrate import Migrate, upgrade
 from app import create_app, db
-# from app.models import User, Follow, Role, Permission, Post, Comment
+from app.models import User, Role, Permission, Task
 print('start running')
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
-# migrate = Migrate(app, db)
+migrate = Migrate(app, db)
 
 
-# @app.shell_context_processor
-# def make_shell_context():
-#     return dict(db=db, User=User, Follow=Follow, Role=Role,
-#                 Permission=Permission, Post=Post, Comment=Comment)
+@app.shell_context_processor
+def make_shell_context():
+    return dict(db=db, User=User, Role=Role, Permission=Permission, Task=Task)
 
