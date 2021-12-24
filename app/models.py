@@ -2,10 +2,11 @@ from datetime import datetime
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from markdown import markdown
+
 import bleach
 from flask import current_app, url_for
 from flask_login import UserMixin, AnonymousUserMixin
+from wtforms.validators import Email
 from app.exceptions import ValidationError
 from . import db, login_manager
 
@@ -38,7 +39,7 @@ class Role(db.Model):
             'Supervisor':[Permission.APPROVE_TASK],
             'Administrator': [Permission.ADMIN],
         }
-        default_role = 'User'
+        default_role = 'Assignee'
         for r in roles:
             role = Role.query.filter_by(name=r).first()
             if role is None:
@@ -78,17 +79,10 @@ class User(UserMixin, db.Model):
     # confirmed = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(64))
     location = db.Column(db.String(64))
-    # about_me = db.Column(db.Text())
-    # member_since = db.Column(db.DateTime(), default=datetime.utcnow)
-    # last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
-    # avatar_hash = db.Column(db.String(32))
-    # tasks = db.relationship('Task', backref='author', lazy='dynamic')
-
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         
-
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
@@ -99,54 +93,24 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
-
-
-    @staticmethod
-    def reset_password(token, new_password):
-        s = Serializer(current_app.config['SECRET_KEY'])
-        try:
-            data = s.loads(token.encode('utf-8'))
-        except:
-            return False
-        user = User.query.get(data.get('reset'))
-        if user is None:
-            return False
-        user.password = new_password
-        db.session.add(user)
-        return True
-
-    def generate_email_change_token(self, new_email, expiration=3600):
-        s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps(
-            {'change_email': self.id, 'new_email': new_email}).decode('utf-8')
-
-    def change_email(self, token):
-        s = Serializer(current_app.config['SECRET_KEY'])
-        try:
-            data = s.loads(token.encode('utf-8'))
-        except:
-            return False
-        if data.get('change_email') != self.id:
-            return False
-        new_email = data.get('new_email')
-        if new_email is None:
-            return False
-        if self.query.filter_by(email=new_email).first() is not None:
-            return False
-        self.email = new_email
-        self.avatar_hash = self.gravatar_hash()
-        db.session.add(self)
-        return True
-
+    
     def can(self, perm):
         return self.role is not None and self.role.has_permission(perm)
 
     def is_administrator(self):
         return self.can(Permission.ADMIN)
 
-    def ping(self):
-        self.last_seen = datetime.utcnow()
-        db.session.add(self)
+    @staticmethod
+    def insert_admin():
+        admin = User(email = 'admin@admin.com',
+                    username = 'admin',
+                    role_id = 4,
+                    password = 'admin123',
+                    name='admin',
+                    location='admin'
+        )
+        db.session.add(admin)
+        db.session.commit()
 
     def to_json(self):
         json_user = {
@@ -194,7 +158,7 @@ class Task(db.Model):
                         'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
                         'h1', 'h2', 'h3', 'p']
         target.body_html = bleach.linkify(bleach.clean(
-            markdown(value, output_format='html'),
+            value,
             tags=allowed_tags, strip=True))
 
     def to_json(self):
