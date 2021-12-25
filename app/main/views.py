@@ -20,7 +20,10 @@ def before_request():
 @main.route('/', methods=['GET', 'POST'])
 @main.route('/index', methods=['GET', 'POST'])
 @login_required
-def index():    
+def index():
+    if current_user.is_administrator():
+        return redirect(url_for('main.admin_list_users'))
+        
     return render_template('index.html', title='Home')
 
 
@@ -92,7 +95,7 @@ def admin_edit_user(id):
     form = UserUpdateForm()
     if form.validate_on_submit():
         user.name = form.fullname.data
-        user.username = form.username.data
+        # user.username = form.username.data
         user.email = form.email.data
         user.location = form.location.data
         if (form.password.data != ''):
