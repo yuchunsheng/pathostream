@@ -1,5 +1,6 @@
 from datetime import datetime
 import hashlib
+from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
@@ -66,7 +67,7 @@ class Role(db.Model):
         return self.permissions & perm == perm
 
     def __repr__(self):
-        return '<Role %r>' % self.name
+        return f"<Role {self.name}>"
 
 
 class User(UserMixin, db.Model):
@@ -79,6 +80,8 @@ class User(UserMixin, db.Model):
     # confirmed = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(64))
     location = db.Column(db.String(64))
+    
+    
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -126,22 +129,37 @@ class User(UserMixin, db.Model):
         return json_user
 
     def __repr__(self):
-        return '<User %r>' % self.username
-
-
-class AnonymousUser(AnonymousUserMixin):
-    def can(self, permissions):
-        return False
-
-    def is_administrator(self):
-        return False
-
-login_manager.anonymous_user = AnonymousUser
-
+        return f"<User {self.username}"
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+class CaseStatus:
+    Created = "Created"
+    Assigned = 'Assigned'
+    Rejected = 'Rejected'
+    Approved = 'Approved'
+
+class Case(db.Model):
+    """
+    Create a Case table
+    """
+    __tablename__ = 'cases'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(60), unique=True)
+    description = db.Column(db.String(200))
+    status = db.Column(db.String(15))
+    assignee_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    operator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    assignees = db.relationship('User',  foreign_keys=[assignee_id], backref=backref('assignees'))
+    operators = db.relationship('User',  foreign_keys=[operator_id], backref=backref('operators'))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.now())
+    
+
+    def __repr__(self):
+        return f"Case:{self.name}"
 
 
 class Task(db.Model):

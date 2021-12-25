@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 from app import db
 from app.auth.forms import RegistrationForm, UserUpdateForm
 from app.main.forms import EmptyForm, TaskForm, MessageForm
-from app.models import Role, User, Task
+from app.models import Case, Role, User, Task
 from app.main import main
 
 
@@ -16,25 +16,24 @@ def before_request():
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
 
-
-@main.route('/', methods=['GET', 'POST'])
-@main.route('/index', methods=['GET', 'POST'])
-@login_required
-def index():
-    if current_user.is_administrator():
-        return redirect(url_for('main.admin_list_users'))
-        
-    return render_template('index.html', title='Home')
-
-
-
-
 def check_admin():
     """
     Prevent non-admins from accessing the page
     """
     if not current_user.is_administrator():
         abort(403)
+
+@main.route('/', methods=['GET'])
+@main.route('/index', methods=['GET'])
+@login_required
+def index():
+    if current_user.is_administrator():
+        return redirect(url_for('main.admin_list_users'))
+
+    cases = Case.query.all()     
+    return render_template('workflow_list_case.html', title='Home', cases = cases)
+
+
 
 # add admin dashboard view
 @main.route('/admin/add_user', methods=['GET', 'POST'])
