@@ -1,9 +1,10 @@
 from datetime import datetime
+from os import name
 from flask import render_template, abort, flash, redirect, url_for, request, g, \
     jsonify, current_app
 from flask_login import current_user, login_required
 from app import db
-from app.auth.forms import RegistrationForm
+from app.auth.forms import RegistrationForm, UserUpdateForm
 from app.main.forms import EmptyForm, TaskForm, MessageForm
 from app.models import Role, User, Task
 from app.main import main
@@ -68,7 +69,7 @@ def admin_list_users():
 @login_required
 def admin_delete_user(id):
     """
-    Delete a department from the database
+    Delete a user from the database
     """
     check_admin()
 
@@ -79,3 +80,36 @@ def admin_delete_user(id):
 
     # redirect to the departments page
     return redirect(url_for('main.admin_list_users'))
+
+@main.route('/admin/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def admin_edit_user(id):
+    """
+    Edit a user
+    """
+    check_admin()
+    user = User.query.get_or_404(id)
+    form = UserUpdateForm()
+    if form.validate_on_submit():
+        user.name = form.fullname.data
+        user.username = form.username.data
+        user.email = form.email.data
+        user.location = form.location.data
+        if (form.password.data != ''):
+            user.password = form.password.data
+        role_id = Role.query.filter_by(name=form.role.data).first().id
+        print(role_id)
+        user.role_id = role_id
+        db.session.commit()
+        flash('You have successfully edited the department.')
+
+        # redirect to the departments page
+        return redirect(url_for('main.admin_list_users'))
+
+    form.username.data = user.username
+    form.fullname.data = user.name
+    form.email.data = user.email
+    form.location.data = user.location
+    form.role.data = user.role.name
+    form.password.data = ''
+    return render_template('admin_edit_user.html',  form=form, title="Edit User")
