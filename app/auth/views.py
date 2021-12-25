@@ -20,7 +20,7 @@ def login():
         login_user(user)
         # redirect to the appropriate dashboard page
         if user.is_administrator():
-            return redirect(url_for('main.admin_dashboard'))
+            return redirect(url_for('main.admin_list_users'))
         else:
             return redirect(url_for('main.index'))
     return render_template('auth/login.html', title='Sign In', form=form)
