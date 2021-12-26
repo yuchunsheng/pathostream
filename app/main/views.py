@@ -40,10 +40,28 @@ def index():
 def workflow_add_case():
     go_to_admin_page()
     form = CaseForm()
+    choices = [(0, "")]
+    for g in User.query.filter(User.role.has(name='Administrator')).order_by('name'):
+        choices.append((g.id, g.name)) 
+
+    form.operator.choices=choices
+    form.operator.default = 0
+    
     if form.validate_on_submit():
-        flash('A new user has been added!')
+
+        case =Case(name = form.name.data,
+                    description = form.description.data,
+                    status = 'Created',
+                    assignee_id = current_user.id,
+                    operator_id = form.operator.data
+        )
+        db.session.add(case)
+        db.session.commit()
+
+        flash('A new case has been added!')
         return redirect(url_for('main.index'))
-    form.operator.choices=[(g.id, g.name) for g in User.query.filter(User.role.has(name='Supervisor')).order_by('name')]
+
+    
     return render_template('workflow_add_case.html', title='Add Case', form = form)
 
 
