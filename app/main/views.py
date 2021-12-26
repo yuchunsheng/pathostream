@@ -3,9 +3,10 @@ from os import name
 from flask import render_template, abort, flash, redirect, url_for, request, g, \
     jsonify, current_app
 from flask_login import current_user, login_required
+from wtforms.fields import choices
 from app import db
 from app.auth.forms import RegistrationForm, UserUpdateForm
-from app.main.forms import CaseForm, EmptyForm, MessageForm
+from app.main.forms import CaseForm, EmptyForm, MessageForm, UpdateCaseForm
 from app.models import Case, Role, User, Task
 from app.main import main
 
@@ -35,15 +36,20 @@ def index():
     cases = Case.query.all()     
     return render_template('workflow_list_case.html', title='Home', cases = cases)
 
+def fill_operator_list():
+    choices = [(0, "")]
+    for g in User.query.filter(User.role.has(name='Administrator')).order_by('name'):
+        choices.append((g.id, g.name)) 
+
+    return choices
+
 @main.route('/workflow/add_case', methods=['GET', 'POST'])
 @login_required
 def workflow_add_case():
     go_to_admin_page()
     form = CaseForm()
-    choices = [(0, "")]
-    for g in User.query.filter(User.role.has(name='Administrator')).order_by('name'):
-        choices.append((g.id, g.name)) 
-
+    
+    choices = fill_operator_list()
     form.operator.choices=choices
     form.operator.default = 0
     
@@ -64,6 +70,52 @@ def workflow_add_case():
     
     return render_template('workflow_add_case.html', title='Add Case', form = form)
 
+@main.route('/workflow/delete_case/<int:id>', methods=['GET', 'POST'])
+@login_required
+def workflow_delete_case(id):
+    """
+    Delete a case from the database
+    """
+    go_to_admin_page()
+
+    case = Case.query.get_or_404(id)
+    db.session.delete(case)
+    db.session.commit()
+    flash('You have successfully deleted a case.')
+
+    # redirect to the departments page
+    return redirect(url_for('main.index'))
+
+@main.route('/workflow/edit_case/<int:id>', methods=['GET', 'POST'])
+@login_required
+def workflow_edit_case(id):
+    """
+    Edit a case
+    """
+    go_to_admin_page()
+    case = Case.query.get_or_404(id)
+    form = UpdateCaseForm()
+    choices = fill_operator_list()
+    form.operator.choices = choices
+    
+
+    if form.validate_on_submit():
+        case.name = form.name.data
+        case.description = form.description.data
+        case.operator_id = form.operator.data
+
+        db.session.commit()
+        flash('You have successfully edited the case.')
+
+        # redirect to the departments page
+        return redirect(url_for('main.index'))
+    
+    form.operator.default = case.operator_id
+    form.process()
+    form.name.data = case.name
+    form.description.data = case.description
+
+    return render_template('workflow_edit_case.html',  form=form, title="Edit Case")
 
 # add admin dashboard view
 @main.route('/admin/add_user', methods=['GET', 'POST'])

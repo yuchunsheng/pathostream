@@ -24,23 +24,15 @@
                   <tr>
                     <td> {{ case.name }} </td>
                     <td> {{ case.description }} </td>
-                    <!-- <td>
-                      {% if case.employees %}
-                        {{ department.employees.count() }}
-                      {% else %}
-                        0
-                      {% endif %}
-                    </td> -->
+
+                    <td>{{case.operator_id}} </td>
                     <td>
-                      test
-                    </td>
-                    <td>
-                      <a href="#">
+                      <a href="{{url_for('main.workflow_edit_case', id=case.id)}}">
                         <i class="fa fa-pencil"></i> Edit
                       </a>
                     </td>
                     <td>
-                      <a href="#">
+                      <a href="{{url_for('main.workflow_delete_case', id=case.id)}}">
                         <i class="fa fa-trash"></i> Delete
                       </a>
                     </td>

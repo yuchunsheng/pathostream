@@ -20,7 +20,11 @@ class CaseForm(FlaskForm):
 
     submit = SubmitField('Submit')
 
-
+class UpdateCaseForm(FlaskForm):
+    name = StringField('name', validators=[DataRequired()])
+    description = StringField('description', validators=[DataRequired()])
+    operator=SelectField('pathologist')
+    submit = SubmitField('Update')
 
 class MessageForm(FlaskForm):
     message = TextAreaField('Message', validators=[DataRequired(), Length(min=1, max=140)])
