@@ -5,7 +5,7 @@ from flask import render_template, abort, flash, redirect, url_for, request, g, 
 from flask_login import current_user, login_required
 from app import db
 from app.auth.forms import RegistrationForm, UserUpdateForm
-from app.main.forms import EmptyForm, TaskForm, MessageForm
+from app.main.forms import CaseForm, EmptyForm, MessageForm
 from app.models import Case, Role, User, Task
 from app.main import main
 
@@ -23,16 +23,28 @@ def check_admin():
     if not current_user.is_administrator():
         abort(403)
 
+def go_to_admin_page():
+    if current_user.is_administrator():
+        return redirect(url_for('main.admin_list_users'))
+
 @main.route('/', methods=['GET'])
 @main.route('/index', methods=['GET'])
 @login_required
 def index():
-    if current_user.is_administrator():
-        return redirect(url_for('main.admin_list_users'))
-
+    go_to_admin_page()
     cases = Case.query.all()     
     return render_template('workflow_list_case.html', title='Home', cases = cases)
 
+@main.route('/workflow/add_case', methods=['GET', 'POST'])
+@login_required
+def workflow_add_case():
+    go_to_admin_page()
+    form = CaseForm()
+    if form.validate_on_submit():
+        flash('A new user has been added!')
+        return redirect(url_for('main.index'))
+    form.operator.choices=[(g.id, g.name) for g in User.query.filter(User.role.has(name='Supervisor')).order_by('name')]
+    return render_template('workflow_add_case.html', title='Add Case', form = form)
 
 
 # add admin dashboard view
@@ -43,7 +55,6 @@ def admin_add_user():
     check_admin()
     form = RegistrationForm()
     if form.validate_on_submit():
-        print('submit form')
         role_id =  Role.query.filter_by(name=form.role.data).first().id
         user =User(email = form.email.data,
                     username = form.username.data,

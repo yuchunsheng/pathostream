@@ -14,7 +14,7 @@
                   <tr>
                     <th width="15%"> Name </th>
                     <th width="40%"> Description </th>
-                    <th width="15%"> Employee Count </th>
+                    <th width="15%"> Operator </th>
                     <th width="15%"> Edit </th>
                     <th width="15%"> Delete </th>
                   </tr>
@@ -31,6 +31,9 @@
                         0
                       {% endif %}
                     </td> -->
+                    <td>
+                      test
+                    </td>
                     <td>
                       <a href="#">
                         <i class="fa fa-pencil"></i> Edit
@@ -52,7 +55,7 @@
               <hr class="intro-divider">
             </div>
           {% endif %}
-            <a href="#" class="btn btn-default btn-lg">
+            <a href="{{url_for('main.workflow_add_case')}}" class="btn btn-default btn-lg">
               <i class="fa fa-plus"></i>
               Add Case
             </a>
