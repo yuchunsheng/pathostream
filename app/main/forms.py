@@ -1,7 +1,3 @@
-import operator
-from os import name
-from flask import request
-from flask.typing import StatusCode
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField
 from wtforms.fields.choices import SelectField
@@ -19,6 +15,12 @@ class CaseForm(FlaskForm):
     operator=SelectField('pathologist')
 
     submit = SubmitField('Submit')
+
+class RejectCaseForm(FlaskForm):
+    name = StringField('name', render_kw={'disabled':''})
+    description = StringField('description', validators=[DataRequired()])
+
+    submit = SubmitField('Reject')
 
 class UpdateCaseForm(FlaskForm):
     name = StringField('name', validators=[DataRequired()])

@@ -1,4 +1,5 @@
 from datetime import datetime
+import enum
 import hashlib
 from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,7 +13,7 @@ from app.exceptions import ValidationError
 from . import db, login_manager
 
 
-class Permission:
+class Permission():
     MODIFY_PCU = 1
     CREATE_TASK = 2
     APPROVE_TASK = 4
@@ -103,6 +104,13 @@ class User(UserMixin, db.Model):
     def is_administrator(self):
         return self.can(Permission.ADMIN)
 
+    def is_assignee(self):
+        return self.can(Permission.CREATE_TASK)
+    def is_pathologist(self):
+        return self.can(Permission.MODIFY_PCU)
+    def is_supervisor(self):
+        return self.can(Permission.APPROVE_TASK)
+
     @staticmethod
     def insert_admin():
         admin = User(email = 'admin@admin.com',
@@ -135,9 +143,10 @@ class User(UserMixin, db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-class CaseStatus:
+class CaseStatus():
     Created = "Created"
     Assigned = 'Assigned'
+    Accepted = 'Accepted'
     Rejected = 'Rejected'
     Approved = 'Approved'
 
@@ -150,7 +159,7 @@ class Case(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), unique=True)
     description = db.Column(db.String(200))
-    status = db.Column(db.String(15))
+    status = db.Column(db.String(10))
     assignee_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     operator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     assignees = db.relationship('User',  foreign_keys=[assignee_id], backref=backref('assignees'))

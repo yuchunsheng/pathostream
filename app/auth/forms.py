@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.fields.choices import SelectField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 # from flask_babel import _, lazy_gettext as _l
 from app.models import User
@@ -20,7 +21,7 @@ class RegistrationForm(FlaskForm):
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(),
                                            EqualTo('password')])
-    role = StringField('Role',validators=[DataRequired()])
+    role = SelectField('Role')
     location = StringField('Location',validators=[DataRequired()])
     submit = SubmitField('Register')
 
@@ -35,11 +36,12 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Please use a different email address.')
 
 class UserUpdateForm(FlaskForm):
-    username = StringField('Username', render_kw={'disabled':''})
+    username = StringField('Username', validators=[DataRequired()])
     fullname = StringField('Fullname', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[])
-    role = StringField('Role',validators=[DataRequired()])
+    # role = StringField('Role',validators=[DataRequired()])
+    role = SelectField('Role')
     location = StringField('Location',validators=[DataRequired()])
     submit = SubmitField('Update')
 
