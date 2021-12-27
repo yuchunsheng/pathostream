@@ -38,7 +38,7 @@ def get_next_page():
     if current_user.is_pathologist():
         next_url = ('main.workflow_assigned_cases')
     if current_user.is_supervisor():
-        next_url = 'main.workflow_list_case'
+        next_url = 'main.workflow_list_rejected_cases'
         
     return next_url
 
@@ -58,6 +58,7 @@ def fill_operator_list():
 @main.route('/workflow/list_case', methods=['GET'])
 @login_required
 def workflow_list_case():
+    # cases = Case.query.filter(Case.assignee_id == current_user.id)  
     cases = Case.query.all()     
     return render_template('workflow_list_case.html', title='Home', cases = cases)
 
@@ -89,6 +90,35 @@ def workflow_reject_case(id):
     form.name.data = rejected_case.name
     form.description.data = rejected_case.description
     return render_template('workflow_reject_case.html', title='Reject', form=form)
+
+@main.route('/workflow/list_rejected_cases', methods=['GET'])
+@login_required
+def workflow_list_rejected_cases():
+    cases = Case.query.filter(Case.status == CaseStatus.Rejected)     
+    return render_template('workflow_list_rejected_cases.html', title='Home', cases = cases)
+
+@main.route('/workflow/approve_case/<int:id>', methods=['GET', 'POST'])
+@login_required
+def workflow_approve_case(id):
+    accepted_case = Case.query.get_or_404(id)
+    accepted_case.status = CaseStatus.Approved
+    db.session.commit() 
+    return redirect(url_for('main.workflow_list_rejected_cases'))
+
+@main.route('/workflow/update_approve_case/<int:id>', methods=['GET', 'POST'])
+@login_required
+def workflow_update_approve_case(id):
+    rejected_case = Case.query.get_or_404(id)
+    form = RejectCaseForm()
+    if form.validate_on_submit():
+        rejected_case.status = CaseStatus.Rejected
+        rejected_case.description = form.description.data
+        db.session.commit() 
+        return redirect(url_for('main.workflow_list_rejected_cases'))
+
+    form.name.data = rejected_case.name
+    form.description.data = rejected_case.description
+    return render_template('workflow_update_approve_case.html', title='Reject', form=form)
 
 @main.route('/workflow/add_case', methods=['GET', 'POST'])
 @login_required

@@ -80,9 +80,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     # confirmed = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(64))
-    location = db.Column(db.String(64))
-    
-    
+    location = db.Column(db.String(64))   
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)

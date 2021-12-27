@@ -16,7 +16,6 @@ login_manager.login_message = "You must be logged in to access this page."
 
 
 def create_app(config_name):
-    print(config_name)
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
