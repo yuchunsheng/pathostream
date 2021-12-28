@@ -1,13 +1,9 @@
 from datetime import datetime
-from os import name
-from flask import render_template, abort, flash, redirect, url_for, request, g, \
-    jsonify, current_app
+from flask import render_template, abort, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_required
-from wtforms.fields import choices
 from app import db
-from app.auth.forms import RegistrationForm, UserUpdateForm
-from app.main.forms import CaseForm, EmptyForm, MessageForm, RejectCaseForm, UpdateCaseForm
-from app.models import Case, CaseStatus, Role, User, Task
+from app.main.forms import CaseForm, RejectCaseForm, UpdateCaseForm
+from app.models import Case, CaseStatus, User
 from app.main import main
 
 
@@ -32,7 +28,7 @@ def go_to_admin_page():
 def get_next_page():
     next_url = ''
     if current_user.is_administrator():
-        next_url =  'main.admin_list_users'
+        next_url =  'user.list_users'
     if current_user.is_assignee():
         next_url = ('main.workflow_list_case')
     if current_user.is_pathologist():
@@ -47,6 +43,7 @@ def get_next_page():
 @login_required
 def index():
     redirect_url = get_next_page() 
+    print(redirect_url)
     return redirect(url_for(redirect_url))
 
 def fill_operator_list():
@@ -193,91 +190,3 @@ def workflow_edit_case(id):
 
     return render_template('workflow_edit_case.html',  form=form, title="Edit Case")
 
-def fill_role_list():
-    choices = []
-    for g in Role.query.order_by('name'):
-        choices.append((g.id, g.name)) 
-    return choices
-
-# add admin dashboard view
-@main.route('/admin/add_user', methods=['GET', 'POST'])
-@login_required
-def admin_add_user():
-    # prevent non-admins from accessing the page
-    check_admin()
-    form = RegistrationForm()
-    choices = fill_role_list()
-    form.role.choices = choices
-
-    if form.validate_on_submit():
-        user =User(email = form.email.data,
-                    username = form.username.data,
-                    role_id = form.role.data,
-                    password = form.password.data,
-                    name=form.fullname.data,
-                    location=form.location.data
-        )
-
-        db.session.add(user)
-        db.session.commit()
-        flash('A new user has been added!')
-        return redirect(url_for('main.admin_list_users'))
-
-    return render_template('admin_add_user.html', title="Add User", form=form)
-
-@main.route('/admin/list_users', methods=['GET'])
-@login_required
-def admin_list_users():
-    check_admin()
-    users = User.query.all()
-    return render_template('admin_list_users.html', title='List Users', users=users)
-
-@main.route('/admin/delete/<int:id>', methods=['GET', 'POST'])
-@login_required
-def admin_delete_user(id):
-    """
-    Delete a user from the database
-    """
-    check_admin()
-    user = User.query.get_or_404(id)
-    db.session.delete(user)
-    db.session.commit()
-    flash('You have successfully deleted a user.')
-
-    # redirect to the departments page
-    return redirect(url_for('main.admin_list_users'))
-
-@main.route('/admin/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-def admin_edit_user(id):
-    """
-    Edit a user
-    """
-    check_admin()
-    user = User.query.get_or_404(id)
-    form = UserUpdateForm()
-    choices = fill_role_list()
-    form.role.choices = choices
-
-    if form.validate_on_submit():
-        user.name = form.fullname.data
-        user.username = form.username.data
-        user.email = form.email.data
-        user.location = form.location.data
-        if (form.password.data != ''):
-            user.password = form.password.data
-
-        user.role_id = form.role.data
-        db.session.commit()
-        flash('You have successfully edited the User.')
-
-        # redirect to the departments page
-        return redirect(url_for('main.admin_list_users'))
-    form.role.default = user.role_id
-    form.process()
-    form.username.data = user.username
-    form.fullname.data = user.name
-    form.email.data = user.email
-    form.location.data = user.location
-    form.password.data = ''
-    return render_template('admin_edit_user.html',  form=form, title="Edit User")

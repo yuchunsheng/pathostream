@@ -40,12 +40,12 @@
                         <td> {{user.email}}</td>
                         <td> {{user.location}}</td>
                         <td>
-                        <a href="{{ url_for('main.admin_edit_user', id=user.id) }}">
+                        <a href="{{ url_for('user.edit_user', id=user.id) }}">
                             <i class="fa fa-pencil"></i> Edit
                         </a>
                         </td>
                         <td>
-                        <a href="{{ url_for('main.admin_delete_user', id=user.id) }}">
+                        <a href="{{ url_for('user.delete_user', id=user.id) }}">
                             <i class="fa fa-trash"></i> Delete
                         </a>
                         </td>
@@ -60,7 +60,7 @@
                 <hr class="intro-divider">
             </div>
         {% endif %}
-        <a href="{{ url_for('main.admin_add_user') }}" class="btn btn-default btn-lg">
+        <a href="{{ url_for('user.add_user') }}" class="btn btn-default btn-lg">
         <i class="fa fa-plus"></i>
         Add User
         </a>

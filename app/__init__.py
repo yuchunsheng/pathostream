@@ -43,4 +43,10 @@ def create_app(config_name):
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
+    from app.user import user as user_blueprint
+    app.register_blueprint(user_blueprint, url_prefix='/user')
+
+    # from app.workflow import workflow as workflow_blueprint
+    # app.register_blueprint(workflow_blueprint, url_prefix='/workflow')
+
     return app
