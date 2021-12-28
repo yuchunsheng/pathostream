@@ -23,7 +23,7 @@
                     <td> {{ case.name }} </td>
                     <td> {{ case.description }} </td>
                     <td>
-                      <a href="{{url_for('main.workflow_approve_case', id=case.id)}}">
+                      <a href="{{url_for('workflow.approve_case', id=case.id)}}">
                         <i class="fa fa-pencil"></i> Approve
                       </a>
                     </td>

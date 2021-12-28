@@ -14,7 +14,7 @@
                   <tr>
                     <th width="15%"> Name </th>
                     <th width="40%"> Description </th>
-                    <th width="15%"> Operator </th>
+                    <th width="15%"> Status</th>
                     <th width="15%"> Edit </th>
                     <th width="15%"> Delete </th>
                   </tr>
@@ -24,16 +24,15 @@
                   <tr>
                     <td> {{ case.name }} </td>
                     <td> {{ case.description }} </td>
-
-                    <td>{{case.operator_id}} </td>
+                    <td>{{case.status}}</td>
                     <td>
-                      <a href="{{url_for('main.workflow_edit_case', id=case.id)}}">
-                        <i class="fa fa-pencil"></i> Edit
+                      <a href="{{url_for('workflow.accept_case', id=case.id)}}">
+                        <i class="fa fa-pencil"></i> Accept
                       </a>
                     </td>
                     <td>
-                      <a href="{{url_for('main.workflow_delete_case', id=case.id)}}">
-                        <i class="fa fa-trash"></i> Delete
+                      <a href="{{url_for('workflow.reject_case', id=case.id)}}">
+                        <i class="fa fa-trash"></i> Reject
                       </a>
                     </td>
                   </tr>
@@ -47,10 +46,6 @@
               <hr class="intro-divider">
             </div>
           {% endif %}
-            <a href="{{url_for('main.workflow_add_case')}}" class="btn btn-default btn-lg">
-              <i class="fa fa-plus"></i>
-              Add Case
-            </a>
         </div>
       </div>
     </div>

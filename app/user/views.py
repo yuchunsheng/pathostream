@@ -16,7 +16,7 @@ def fill_role_list():
     return choices
 
 # add admin dashboard view
-@user.route('/user/add_user', methods=['GET', 'POST'])
+@user.route('/add_user', methods=['GET', 'POST'])
 @login_required
 def add_user():
     # prevent non-admins from accessing the page
@@ -41,14 +41,14 @@ def add_user():
 
     return render_template('user/add_user.html', title="Add User", form=form)
 
-@user.route('/user/list_users', methods=['GET'])
+@user.route('/list_users', methods=['GET'])
 @login_required
 def list_users():
     check_admin()
     users = User.query.all()
     return render_template('user/list_users.html', title='List Users', users=users)
 
-@user.route('/user/delete/<int:id>', methods=['GET', 'POST'])
+@user.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_user(id):
     """
@@ -63,7 +63,7 @@ def delete_user(id):
     # redirect to the departments page
     return redirect(url_for('user.list_users'))
 
-@user.route('/user/edit/<int:id>', methods=['GET', 'POST'])
+@user.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_user(id):
     """
