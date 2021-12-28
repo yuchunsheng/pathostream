@@ -155,8 +155,18 @@ class Case(db.Model):
     __tablename__ = 'cases'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True)
-    description = db.Column(db.String(200))
+
+    cp_num = db.Column(db.String(20))
+    specimen_class = db.Column(db.String(20))
+    part_type = db.Column(db.String(50))
+    group_external_value = db.Column(db.String(20))
+    part_description = db.Column(db.String(200))
+    block_count = db.Column(db.Integer, default = 0)
+    coctor_code = db.Column(db.String(20))
+    specialty = db.Column(db.String(20))
+    location = db.Column(db.String(20))
+    PCU = db.Column(db.Integer, default = 0)
+
     status = db.Column(db.String(10))
     assignee_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     operator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
