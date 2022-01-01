@@ -2,11 +2,12 @@ from flask import flash
 from flask.helpers import url_for
 from flask.templating import render_template
 from flask_login.utils import login_required, current_user
-from werkzeug.utils import redirect
+from werkzeug.utils import redirect, secure_filename
+import pandas as pd
 
 from app import db
 from app.models import Case, CaseStatus, User
-from app.workflow.forms import CaseForm, RejectCaseForm, UpdateCaseForm
+from app.workflow.forms import CSVUplodForm, CaseForm, RejectCaseForm, UpdateCaseForm
 from app.workflow import workflow
 
 
@@ -183,3 +184,39 @@ def edit_case(id):
 
     return render_template('workflow/edit_case.html',  form=form, title="Edit Case")
 
+@workflow.route('/upload_csv', methods=['GET', 'POST'])
+@login_required
+def upload_csv():
+    form = CSVUplodForm()
+
+    if form.validate_on_submit():
+        filestream = form.file.data
+        # filename = secure_filename(filestream.filename)
+        df = pd.read_csv( filestream )
+        cases = []
+        for index, row in df[:5].iterrows():
+            # print(row['CP_NUM'], row['PartType'], row['Group'], row['Location'])
+            new_case = Case(
+                cp_num=row['CP_NUM'],
+                specimen_class=row['SpecimenClass'],
+                part_type=row['PartType'],
+                group_external_value=row['Group'],
+                part_description=row['PartDescription'],
+                block_count=row['BlockCount'],
+                doctor_code=row['DoctorCode'],
+                specialty=row['Specialty'],
+                location=row['Location'],
+                PCU=0,
+                status = CaseStatus.Created,
+                assignee_id = current_user.id
+
+            )
+            cases.append(new_case)
+
+        print(len(cases))
+        db.session.add_all(cases)
+        db.session.commit()
+
+        return redirect(url_for('main.index'))
+    
+    return render_template('workflow/upload_csv.html', title='Upload CSV', form=form)

@@ -1,7 +1,9 @@
 from flask_wtf.form import FlaskForm
+from flask_wtf.file import FileField, FileRequired
 from wtforms.fields.choices import SelectField
 from wtforms.fields.numeric import IntegerField
-from wtforms.fields.simple import StringField, SubmitField
+from wtforms.fields.simple import FileField, StringField, SubmitField
+
 
 
 class CaseForm(FlaskForm):
@@ -48,3 +50,6 @@ class RejectCaseForm(FlaskForm):
 
     submit = SubmitField('Reject')
 
+class CSVUplodForm(FlaskForm):
+    file = FileField('CSV File', validators=[FileRequired('no file!')])
+    submit = SubmitField('Submit')
