@@ -49,4 +49,7 @@ def create_app(config_name):
     from app.workflow import workflow as workflow_blueprint
     app.register_blueprint(workflow_blueprint, url_prefix='/workflow')
 
+    from app.helper import helper as helper_blueprint
+    app.register_blueprint(helper_blueprint, url_prefix='/helper')
+
     return app

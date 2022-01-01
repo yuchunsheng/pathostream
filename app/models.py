@@ -165,7 +165,7 @@ class Case(db.Model):
     doctor_code = db.Column(db.String(20))
     specialty = db.Column(db.String(20))
     location = db.Column(db.String(20))
-    PCU = db.Column(db.Integer, default = 0)
+    PCU = db.Column(db.Float, default = 0)
 
     status = db.Column(db.String(10))
     assignee_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -178,6 +178,19 @@ class Case(db.Model):
     def __repr__(self):
         return f"Case:{self.name}"
 
+class PCU_Lookup(db.Model):
+    __tablename__ = 'pcu_lookup'
+    id = db.Column(db.Integer, primary_key=True)
+    part_type = db.Column(db.String(100))
+    jk_type = db.Column(db.String(50))
+    new_jk_class = db.Column(db.String(10))
+    new_jk_pcu = db.Column(db.Float)
+    comments = db.Column(db.Text)
+    
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"Case:{self.part_type}"
 
 class Task(db.Model):
     __tablename__ = 'tasks'

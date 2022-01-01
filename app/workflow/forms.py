@@ -1,7 +1,7 @@
 from flask_wtf.form import FlaskForm
-from flask_wtf.file import FileField, FileRequired
+from flask_wtf.file import  FileRequired
 from wtforms.fields.choices import SelectField
-from wtforms.fields.numeric import IntegerField
+from wtforms.fields.numeric import FloatField, IntegerField
 from wtforms.fields.simple import FileField, StringField, SubmitField
 
 
@@ -16,7 +16,7 @@ class CaseForm(FlaskForm):
     doctor_code = StringField('doctor_code')
     specialty = StringField('specialty')
     location = StringField('location')
-    pcu = IntegerField('PCU', default=0)
+    pcu = FloatField('PCU', default=0)
     operator=SelectField('pathologist')
 
     submit = SubmitField('Submit')
@@ -31,7 +31,7 @@ class UpdateCaseForm(FlaskForm):
     doctor_code = StringField('doctor_code')
     specialty = StringField('specialty')
     location = StringField('location')
-    pcu = IntegerField('PCU')
+    pcu = FloatField('PCU')
     operator=SelectField('pathologist')
     submit = SubmitField('Update')
 
@@ -46,7 +46,7 @@ class RejectCaseForm(FlaskForm):
     specialty = StringField('specialty', render_kw={'disabled':''})
     location = StringField('location', render_kw={'disabled':''})
 
-    pcu = IntegerField('PCU')
+    pcu = FloatField('PCU')
 
 
     submit = SubmitField('Reject')
