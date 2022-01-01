@@ -162,7 +162,7 @@ class Case(db.Model):
     group_external_value = db.Column(db.String(20))
     part_description = db.Column(db.String(200))
     block_count = db.Column(db.Integer, default = 0)
-    coctor_code = db.Column(db.String(20))
+    doctor_code = db.Column(db.String(20))
     specialty = db.Column(db.String(20))
     location = db.Column(db.String(20))
     PCU = db.Column(db.Integer, default = 0)

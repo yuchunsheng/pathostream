@@ -29,7 +29,7 @@ def accept_case(id):
     accepted_case = Case.query.get_or_404(id)
     accepted_case.status = CaseStatus.Accepted
     db.session.commit()   
-    return redirect(url_for('main.assigned_cases'))
+    return redirect(url_for('workflow.assigned_cases'))
 
 @workflow.route('/reject_case/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -40,7 +40,7 @@ def reject_case(id):
         rejected_case.status = CaseStatus.Rejected
         rejected_case.description = form.description.data
         db.session.commit() 
-        return redirect(url_for('main.assigned_cases'))
+        return redirect(url_for('workflow.assigned_cases'))
 
     form.name.data = rejected_case.name
     form.description.data = rejected_case.description
@@ -91,10 +91,20 @@ def add_case():
     form.operator.default = 0
     
     if form.validate_on_submit():
-
-        case =Case(name = form.name.data,
-                    description = form.description.data,
-                    status = CaseStatus.Created,
+        status = CaseStatus.Created
+        if form.operator.data !='':
+            status = CaseStatus.Assigned
+        case =Case(cp_num=form.cp_num.data,
+                    specimen_class=form.specimen_class.data,
+                    part_type=form.part_type.data,
+                    group_external_value=form.group_external_value.data,
+                    part_description=form.part_description.data,
+                    block_count=form.block_count.data,
+                    doctor_code=form.doctor_code.data,
+                    specialty=form.specialty.data,
+                    location=form.location.data,
+                    PCU=form.pcu.data,
+                    status = status,
                     assignee_id = current_user.id,
                     operator_id = form.operator.data
         )
@@ -113,7 +123,6 @@ def delete_case(id):
     """
     Delete a case from the database
     """
-
     case = Case.query.get_or_404(id)
     db.session.delete(case)
     db.session.commit()
@@ -134,8 +143,22 @@ def edit_case(id):
     form.operator.choices = choices
 
     if form.validate_on_submit():
-        case.name = form.name.data
-        case.description = form.description.data
+        status = CaseStatus.Created
+        if form.operator.data != '':
+            status = CaseStatus.Assigned
+
+        case.cp_num=form.cp_num.data
+        case.specimen_class=form.specimen_class.data
+        case.part_type=form.part_type.data
+        case.group_external_value=form.group_external_value.data
+        case.part_description=form.part_description.data
+        case.block_count=form.block_count.data
+        case.doctor_code=form.doctor_code.data
+        case.specialty=form.specialty.data
+        case.location=form.location.data
+        case.PCU=form.pcu.data
+        case.status = status
+        case.assignee_id = current_user.id
         case.operator_id = form.operator.data
 
         db.session.commit()
@@ -146,8 +169,17 @@ def edit_case(id):
     
     form.operator.default = case.operator_id
     form.process()
-    form.name.data = case.name
-    form.description.data = case.description
+    form.cp_num.data=case.cp_num
+    
+    form.specimen_class.data=case.specimen_class
+    form.part_type.data=case.part_type
+    form.group_external_value.data=case.group_external_value
+    form.part_description.data=case.part_description
+    form.block_count.data= case.block_count
+    form.doctor_code.data=case.doctor_code
+    form.specialty.data=case.specialty
+    form.location.data=case.location
+    form.pcu.data=case.PCU
 
     return render_template('workflow/edit_case.html',  form=form, title="Edit Case")
 
