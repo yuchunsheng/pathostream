@@ -36,15 +36,16 @@ class UpdateCaseForm(FlaskForm):
     submit = SubmitField('Update')
 
 class RejectCaseForm(FlaskForm):
-    cp_num = StringField('cp_num')
-    specimen_class = StringField('specimen_class')
-    part_type = StringField('part_type')
-    group_external_value = StringField('group_external_value')
-    part_description = StringField('part_description')
-    block_count = IntegerField('block_count')
-    doctor_code = StringField('doctor_code')
-    specialty = StringField('specialty')
-    location = StringField('location')
+    cp_num = StringField('cp_num', render_kw={'disabled':''})
+    specimen_class = StringField('specimen_class', render_kw={'disabled':''})
+    part_type = StringField('part_type', render_kw={'disabled':''})
+    group_external_value = StringField('group_external_value', render_kw={'disabled':''})
+    part_description = StringField('part_description', render_kw={'disabled':''})
+    block_count = IntegerField('block_count', render_kw={'disabled':''})
+    doctor_code = StringField('doctor_code', render_kw={'disabled':''})
+    specialty = StringField('specialty', render_kw={'disabled':''})
+    location = StringField('location', render_kw={'disabled':''})
+
     pcu = IntegerField('PCU')
 
 

@@ -39,12 +39,23 @@ def reject_case(id):
     form = RejectCaseForm()
     if form.validate_on_submit():
         rejected_case.status = CaseStatus.Rejected
-        rejected_case.description = form.description.data
+        print(form.pcu.data)
+        rejected_case.PCU = form.pcu.data
+
         db.session.commit() 
         return redirect(url_for('workflow.assigned_cases'))
 
-    form.name.data = rejected_case.name
-    form.description.data = rejected_case.description
+    form.cp_num.data=rejected_case.cp_num
+    form.specimen_class.data=rejected_case.specimen_class
+    form.part_type.data=rejected_case.part_type
+    form.group_external_value.data=rejected_case.group_external_value
+    form.part_description.data=rejected_case.part_description
+    form.block_count.data= rejected_case.block_count
+    form.doctor_code.data=rejected_case.doctor_code
+    form.specialty.data=rejected_case.specialty
+    form.location.data=rejected_case.location
+    form.pcu.data=rejected_case.PCU
+
     return render_template('workflow/reject_case.html', title='Reject', form=form)
 
 @workflow.route('/list_rejected_cases', methods=['GET'])
@@ -72,8 +83,17 @@ def update_approve_case(id):
         db.session.commit() 
         return redirect(url_for('workflow.list_rejected_cases'))
 
-    form.name.data = rejected_case.name
-    form.description.data = rejected_case.description
+    form.cp_num.data=rejected_case.cp_num
+    form.specimen_class.data=rejected_case.specimen_class
+    form.part_type.data=rejected_case.part_type
+    form.group_external_value.data=rejected_case.group_external_value
+    form.part_description.data=rejected_case.part_description
+    form.block_count.data= rejected_case.block_count
+    form.doctor_code.data=rejected_case.doctor_code
+    form.specialty.data=rejected_case.specialty
+    form.location.data=rejected_case.location
+    form.pcu.data=rejected_case.PCU
+
     return render_template('workflow/update_approve_case.html', title='Reject', form=form)
 
 def fill_operator_list():
