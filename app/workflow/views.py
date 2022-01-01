@@ -79,7 +79,7 @@ def update_approve_case(id):
     form = RejectCaseForm()
     if form.validate_on_submit():
         rejected_case.status = CaseStatus.Rejected
-        rejected_case.description = form.description.data
+        rejected_case.PCU = form.pcu.data
         db.session.commit() 
         return redirect(url_for('workflow.list_rejected_cases'))
 
