@@ -9,6 +9,14 @@
           {% if cases %}
             <hr class="intro-divider">
             <div class="center">
+              <a href="{{url_for('workflow.add_case')}}" class="btn btn-default btn-lg">
+                <i class="fa fa-plus"></i>
+                Add Case
+              </a>
+              <a href="{{url_for('workflow.upload_csv')}}" class="btn btn-default btn-lg">
+                <i class="fa fa-plus"></i>
+                Upload Multiple Cases
+              </a>
               <table class="table table-striped table-bordered">
                 <thead>
                   <tr>
@@ -64,14 +72,7 @@
               <hr class="intro-divider">
             </div>
           {% endif %}
-            <a href="{{url_for('workflow.add_case')}}" class="btn btn-default btn-lg">
-              <i class="fa fa-plus"></i>
-              Add Case
-            </a>
-            <a href="{{url_for('workflow.upload_csv')}}" class="btn btn-default btn-lg">
-              <i class="fa fa-plus"></i>
-              Upload Multiple Cases
-            </a>
+            
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ from werkzeug.utils import redirect, secure_filename
 import pandas as pd
 
 from app import db
-from app.models import Case, CaseStatus, User
+from app.models import Case, CaseStatus, PCU_Lookup, User
 from app.workflow.forms import CSVUplodForm, CaseForm, RejectCaseForm, UpdateCaseForm
 from app.workflow import workflow
 
@@ -213,9 +213,17 @@ def upload_csv():
         filestream = form.file.data
         # filename = secure_filename(filestream.filename)
         df = pd.read_csv( filestream )
+        df = df.fillna('')
+        df = df.iloc[5:10]
         cases = []
-        for index, row in df[:5].iterrows():
+        for index, row in df.iterrows():
             # print(row['CP_NUM'], row['PartType'], row['Group'], row['Location'])
+            new_part_type = row['PartType']
+            pcu_value = 0.0
+            new_pcu_lookup = PCU_Lookup.query.filter(PCU_Lookup.part_type == new_part_type).first()
+            if (new_pcu_lookup is not None):
+                pcu_value = new_pcu_lookup.new_jk_pcu
+
             new_case = Case(
                 cp_num=row['CP_NUM'],
                 specimen_class=row['SpecimenClass'],
@@ -226,7 +234,7 @@ def upload_csv():
                 doctor_code=row['DoctorCode'],
                 specialty=row['Specialty'],
                 location=row['Location'],
-                PCU=0,
+                PCU=pcu_value,
                 status = CaseStatus.Created,
                 assignee_id = current_user.id
 
