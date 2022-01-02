@@ -1,8 +1,8 @@
-from flask import flash
+from flask import jsonify, flash
 from flask.helpers import url_for
 from flask.templating import render_template
 from flask_login.utils import login_required, current_user
-from werkzeug.utils import redirect, secure_filename
+from werkzeug.utils import redirect
 import pandas as pd
 
 from app import db
@@ -101,7 +101,14 @@ def fill_operator_list():
     for g in User.query.filter(User.role.has(name='Pathologist')).order_by('name'):
         choices.append((g.id, g.name)) 
     return choices
-    
+
+@workflow.route('/get_pcu/<part_type>', methods=['GET'])
+@login_required
+def get_pcu(part_type):
+    # print(part_type)
+    pcu_lookup = PCU_Lookup.query.filter_by(part_type = part_type).first()
+    return jsonify({"message": pcu_lookup.new_jk_pcu})
+        
 @workflow.route('/add_case', methods=['GET', 'POST'])
 @login_required
 def add_case():

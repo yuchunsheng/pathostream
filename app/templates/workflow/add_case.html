@@ -12,3 +12,24 @@
 </div>
 
 {% endblock %}
+
+{%block scripts%}
+{{super()}}
+<script>
+    var part_type = document.getElementById('part_type');
+    var pcu = document.getElementById('pcu');
+    
+    part_type.addEventListener('change', updateValue);
+
+    function updateValue(e) {
+        // alert(e.target.value)
+        // pcu.value = e.target.value;
+        fetch('/workflow/get_pcu/'+ part_type.value).then(function(response){
+            response.json().then(function(data){
+                pcu.value = data.message
+                // console.table(data.message)
+            });
+        });
+    };
+</script>
+{%endblock%}
