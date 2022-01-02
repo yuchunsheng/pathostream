@@ -5,7 +5,7 @@
 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
     <ul class="nav navbar-nav navbar-left">
         {% if current_user.is_administrator() %}
-            <li><a href="#">Dashboard</a></li>
+            <li><a href="{{url_for('helper.upload_pcu')}}">Upload PCU</a></li>
             <li><a href="#">Departments</a></li>
             <li><a href="#">Roles</a></li>
             <li><a href="#">Employees</a></li>
