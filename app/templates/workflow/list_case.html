@@ -32,6 +32,7 @@
                     <th width="15%"> location </th>
                     <th width="15%"> PCU </th>
                     <th width="15%"> Pathologist </th>
+                    <th width="15%"> Total_PCU</th>
 
                     <th width="15%"> Edit </th>
                     <th width="15%"> Delete </th>
@@ -39,6 +40,7 @@
                 </thead>
                 <tbody>
                 {% for case in cases %}
+                {% if case is not none %}
                   <tr>
                     <td> {{ case.cp_num }} </td>
                     <td> {{ case.specimen_class }} </td>
@@ -51,7 +53,8 @@
                     <td> {{ case.location }} </td>
                     <td> {{ case.PCU }} </td>
 
-                    <td>{{case.operators.name}} </td>
+                    <td>{{case.operator_name}} </td>
+                    <td>{{case.total_pcu}}</td>
                     <td>
                       <a href="{{url_for('workflow.edit_case', id=case.id)}}">
                         <i class="fa fa-pencil"></i> Edit
@@ -63,6 +66,7 @@
                       </a>
                     </td>
                   </tr>
+                  {% endif %}
                 {% endfor %}
                 </tbody>
               </table>

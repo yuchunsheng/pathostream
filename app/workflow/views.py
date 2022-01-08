@@ -5,6 +5,8 @@ from flask_login.utils import login_required, current_user
 from werkzeug.utils import redirect
 import pandas as pd
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from app import db
 from app.models import Case, CaseStatus, PCU_Lookup, User
 from app.workflow.forms import CSVUplodForm, CaseForm, RejectCaseForm, UpdateCaseForm
@@ -15,7 +17,33 @@ from app.workflow import workflow
 @login_required
 def list_case():
     # cases = Case.query.filter(Case.assignee_id == current_user.id)  
-    cases = Case.query.all()     
+    # cases = Case.query.filter( (Case.status=='Created') | (Case.status=='Assigned')).all()    
+    cases = None
+    try:
+        p = db.session.query(Case.operator_id.label('operator_id'), db.func.sum(Case.PCU).label('total_pcu')
+            ).filter(Case.status == 'Assigned').group_by(Case.operator_id).cte('p')
+
+        cases = db.session.query(
+            Case.id.label('id'),
+            Case.cp_num.label('cp_num'),
+            Case.specimen_class.label('specimen_class')  ,
+            Case.part_type.label('part_type'),
+            Case.group_external_value.label('group_external_value'),
+            Case.part_description.label('part_description'),
+            Case.block_count.label('block_count'),
+            Case.doctor_code.label('doctor_code'),
+            Case.specialty.label('specialty'),
+            Case.location.label('location'),
+            Case.PCU.label('PCU'),
+            Case.status.label('status'),
+            # Case.operator_id.label('operator_name'),
+            User.username.label('operator_name'),
+            p.c.total_pcu.label('total_pcu') 
+        ).select_from(Case).outerjoin(p, p.c.operator_id==Case.operator_id).outerjoin(User, Case.operator_id==User.id)
+    except SQLAlchemyError:
+        cases = None
+
+    print(cases)
     return render_template('workflow/list_case.html', title='Home', cases = cases)
 
 @workflow.route('/assigned_cases', methods=['GET'])
@@ -99,7 +127,16 @@ def update_approve_case(id):
 def fill_operator_list():
     choices = [(0, "")]
     for g in User.query.filter(User.role.has(name='Pathologist')).order_by('name'):
-        choices.append((g.id, g.name)) 
+        # get total PCU that have been assigned to the pathologist
+        pcu = 0.0
+        try:
+            pcu = db.session.query(db.func.sum(Case.PCU)).filter(
+                Case.operator_id == g.id).filter(
+                    Case.status == 'Assigned').scalar() or 0 
+        except SQLAlchemyError:
+            pcu = 0.0
+        
+        choices.append((g.id, g.name + '(' + str(pcu) + ')' )) 
     return choices
 
 @workflow.route('/get_pcu/<part_type>', methods=['GET'])
@@ -221,7 +258,6 @@ def upload_csv():
         # filename = secure_filename(filestream.filename)
         df = pd.read_csv( filestream )
         df = df.fillna('')
-        df = df.iloc[5:10]
         cases = []
         for index, row in df.iterrows():
             # print(row['CP_NUM'], row['PartType'], row['Group'], row['Location'])
