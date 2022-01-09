@@ -1,5 +1,5 @@
 from os import abort
-from flask import jsonify, flash, request
+from flask import jsonify, flash, request, current_app
 from flask.helpers import url_for
 from flask.templating import render_template
 from flask_login.utils import login_required, current_user
@@ -10,6 +10,7 @@ import pandas as pd
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
+import app
 from app.models import Case, CaseStatus, PCU_Lookup, User
 from app.workflow.forms import CSVUplodForm, CaseForm, RejectCaseForm, UpdateCaseForm
 from app.workflow import workflow
@@ -88,7 +89,7 @@ def list_case():
         User, Case.operator_id==User.id).filter(
             (Case.status=='Created') | (Case.status=='Assigned'))
 
-    cases_page = paginate(cases_query, None, 3)
+    cases_page = paginate(cases_query, None, current_app.config['PATHOSTREAM_CASES_PER_PAGE'])
 
     next_url = url_for('workflow.list_case', page=cases_page.next_num ) \
         if cases_page.has_next else None
