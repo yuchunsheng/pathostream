@@ -1,7 +1,9 @@
-from flask import jsonify, flash
+from os import abort
+from flask import jsonify, flash, request
 from flask.helpers import url_for
 from flask.templating import render_template
 from flask_login.utils import login_required, current_user
+from flask_sqlalchemy import Pagination
 from werkzeug.utils import redirect
 import pandas as pd
 
@@ -12,39 +14,89 @@ from app.models import Case, CaseStatus, PCU_Lookup, User
 from app.workflow.forms import CSVUplodForm, CaseForm, RejectCaseForm, UpdateCaseForm
 from app.workflow import workflow
 
+def paginate(obj=None, page=None, per_page=None, error_out=True, max_per_page=None, count=True):
+        """:param obj: Query Object E.g User.query"""
+        if obj:
+            if request:
+                if page is None:
+                    try:
+                        page = int(request.args.get('page', 1))
+                    except (TypeError, ValueError):
+                        if error_out:
+                            abort(404)
+                        page = 1
+                if per_page is None:
+                    try:
+                        per_page = int(request.args.get('per_page', 20))
+                    except (TypeError, ValueError):
+                        if error_out:
+                            abort(404)
+                        per_page = 20
+            else:
+                if page is None:
+                    page = 1
+                if per_page is None:
+                    per_page = 20
+            if max_per_page is not None:
+                per_page = min(per_page, max_per_page)
+            if page < 1:
+                if error_out:
+                    abort(404)
+                else:
+                    page = 1
+            if per_page < 0:
+                if error_out:
+                    abort(404)
+                else:
+                    per_page = 20
+            items = obj.limit(per_page).offset((page - 1) * per_page).all()
+            if not items and page != 1 and error_out:
+                abort(404)
+            if not count:
+                total = None
+            elif page == 1 and len(items) < per_page:
+                total = len(items)
+            else:
+                total = obj.order_by(None).count()
+            return Pagination(obj, page, per_page, total, items)
+        return None
 
 @workflow.route('/list_case', methods=['GET'])
 @login_required
 def list_case():
     # cases = Case.query.filter(Case.assignee_id == current_user.id)  
-    # cases = Case.query.filter( (Case.status=='Created') | (Case.status=='Assigned')).all()    
-    cases = None
-    try:
-        p = db.session.query(Case.operator_id.label('operator_id'), db.func.sum(Case.PCU).label('total_pcu')
-            ).filter(Case.status == 'Assigned').group_by(Case.operator_id).cte('p')
+    # cases = Case.query.filter( (Case.status=='Created') | (Case.status=='Assigned')).all()  
+    p = db.session.query(Case.operator_id.label('operator_id'), db.func.sum(Case.PCU).label('total_pcu')
+        ).filter(Case.status == 'Assigned').group_by(Case.operator_id).cte('p')
 
-        cases = db.session.query(
-            Case.id.label('id'),
-            Case.cp_num.label('cp_num'),
-            Case.specimen_class.label('specimen_class')  ,
-            Case.part_type.label('part_type'),
-            Case.group_external_value.label('group_external_value'),
-            Case.part_description.label('part_description'),
-            Case.block_count.label('block_count'),
-            Case.doctor_code.label('doctor_code'),
-            Case.specialty.label('specialty'),
-            Case.location.label('location'),
-            Case.PCU.label('PCU'),
-            Case.status.label('status'),
-            # Case.operator_id.label('operator_name'),
-            User.username.label('operator_name'),
-            p.c.total_pcu.label('total_pcu') 
-        ).select_from(Case).outerjoin(p, p.c.operator_id==Case.operator_id).outerjoin(User, Case.operator_id==User.id)
-    except SQLAlchemyError:
-        cases = None
+    cases_query = db.session.query(
+        Case.id.label('id'),
+        Case.cp_num.label('cp_num'),
+        Case.specimen_class.label('specimen_class')  ,
+        Case.part_type.label('part_type'),
+        Case.group_external_value.label('group_external_value'),
+        Case.part_description.label('part_description'),
+        Case.block_count.label('block_count'),
+        Case.doctor_code.label('doctor_code'),
+        Case.specialty.label('specialty'),
+        Case.location.label('location'),
+        Case.PCU.label('PCU'),
+        Case.status.label('status'),
+        User.username.label('operator_name'),
+        p.c.total_pcu.label('total_pcu') 
+    ).select_from(Case).outerjoin(p, p.c.operator_id==Case.operator_id).outerjoin(
+        User, Case.operator_id==User.id).filter(
+            (Case.status=='Created') | (Case.status=='Assigned'))
 
-    print(cases)
-    return render_template('workflow/list_case.html', title='Home', cases = cases)
+    cases_page = paginate(cases_query, None, 3)
+
+    next_url = url_for('workflow.list_case', page=cases_page.next_num ) \
+        if cases_page.has_next else None
+    prev_url = url_for('workflow.list_case', page=cases_page.prev_num) \
+        if cases_page.has_prev else None
+    
+    return render_template('workflow/list_case.html', title='Home', cases = cases_page.items, next_url=next_url,
+                           prev_url=prev_url)
 
 @workflow.route('/assigned_cases', methods=['GET'])
 @login_required

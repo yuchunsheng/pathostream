@@ -40,7 +40,6 @@
                 </thead>
                 <tbody>
                 {% for case in cases %}
-                {% if case is not none %}
                   <tr>
                     <td> {{ case.cp_num }} </td>
                     <td> {{ case.specimen_class }} </td>
@@ -66,10 +65,15 @@
                       </a>
                     </td>
                   </tr>
-                  {% endif %}
                 {% endfor %}
                 </tbody>
               </table>
+              {% if prev_url %}
+                <a href="{{ prev_url }}">Prev</a>
+              {% endif %}
+              {% if next_url %}
+                <a href="{{ next_url }}">Next</a>
+              {% endif %}
             </div>
           {% else %}
             <div style="text-align: center">
