@@ -50,9 +50,16 @@ def paginate(obj=None, page=None, per_page=None, error_out=True, max_per_page=No
                     abort(404)
                 else:
                     per_page = 20
+
             items = obj.limit(per_page).offset((page - 1) * per_page).all()
-            if not items and page != 1 and error_out:
-                abort(404)
+            if not items and page != 1 :
+                page = page - 1
+                items = obj.limit(per_page).offset((page - 1) * per_page).all()
+                
+            if not items and page ==1:
+                return None
+            # if not items and page != 1 and error_out:
+            #     abort(404)
             if not count:
                 total = None
             elif page == 1 and len(items) < per_page:
@@ -91,13 +98,19 @@ def list_case():
 
     cases_page = paginate(cases_query, None, current_app.config['PATHOSTREAM_CASES_PER_PAGE'])
 
-    next_url = url_for('workflow.list_case', page=cases_page.next_num ) \
-        if cases_page.has_next else None
-    prev_url = url_for('workflow.list_case', page=cases_page.prev_num) \
-        if cases_page.has_prev else None
-    
-    return render_template('workflow/list_case.html', title='Home', cases = cases_page.items, next_url=next_url,
-                           prev_url=prev_url)
+    if cases_page:
+        next_url = url_for('workflow.list_case', page=cases_page.next_num ) \
+            if cases_page.has_next else None
+        prev_url = url_for('workflow.list_case', page=cases_page.prev_num) \
+            if cases_page.has_prev else None
+        
+        return render_template('workflow/list_case.html', title='Home', cases = cases_page.items, next_url=next_url,
+                            prev_url=prev_url, return_page = cases_page.page)
+
+    else:
+        return render_template('workflow/list_case.html', title='Home', cases = None, next_url=None,
+                            prev_url=None, return_page = None)
+
 
 @workflow.route('/assigned_cases', methods=['GET'])
 @login_required
@@ -119,6 +132,8 @@ def reject_case(id):
     rejected_case = Case.query.get_or_404(id)
     form = RejectCaseForm()
     if form.validate_on_submit():
+        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
+            return redirect(url_for('workflow.list_rejected_cases'))
         rejected_case.status = CaseStatus.Rejected
         print(form.pcu.data)
         rejected_case.PCU = form.pcu.data
@@ -159,6 +174,8 @@ def update_approve_case(id):
     rejected_case = Case.query.get_or_404(id)
     form = RejectCaseForm()
     if form.validate_on_submit():
+        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
+            return redirect(url_for('workflow.list_case'))
         rejected_case.status = CaseStatus.Rejected
         rejected_case.PCU = form.pcu.data
         db.session.commit() 
@@ -209,6 +226,8 @@ def add_case():
     form.operator.default = 0
     
     if form.validate_on_submit():
+        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
+            return redirect(url_for('workflow.list_case'))
         status = CaseStatus.Created
         if form.operator.data !='':
             status = CaseStatus.Assigned
@@ -235,32 +254,40 @@ def add_case():
     
     return render_template('workflow/add_case.html', title='Add Case', form = form)
 
-@workflow.route('/delete_case/<int:id>', methods=['GET', 'POST'])
+@workflow.route('/delete_case', methods=['GET', 'POST'])
 @login_required
-def delete_case(id):
+def delete_case():
     """
     Delete a case from the database
     """
+    id = request.args.get('id')
+    page = request.args.get('page')
+    print(page)
     case = Case.query.get_or_404(id)
     db.session.delete(case)
     db.session.commit()
     flash('You have successfully deleted a case.')
 
     # redirect to the departments page
-    return redirect(url_for('main.index'))
+    return redirect(url_for('workflow.list_case', page=page))
 
-@workflow.route('/edit_case/<int:id>', methods=['GET', 'POST'])
+@workflow.route('/edit_case', methods=['GET', 'POST'])
 @login_required
-def edit_case(id):
+def edit_case():
     """
     Edit a case
     """
+    id = request.args.get('id')
+    page = request.args.get('page')
+    print(page)
     case = Case.query.get_or_404(id)
     form = UpdateCaseForm()
     choices = fill_operator_list()
     form.operator.choices = choices
 
     if form.validate_on_submit():
+        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
+            return redirect(url_for('workflow.list_case', page=page))
         status = CaseStatus.Created
         if form.operator.data != '':
             status = CaseStatus.Assigned
@@ -283,7 +310,7 @@ def edit_case(id):
         flash('You have successfully edited the case.')
 
         # redirect to the departments page
-        return redirect(url_for('main.index'))
+        return redirect(url_for('workflow.list_case', page=page))
     
     form.operator.default = case.operator_id
     form.process()
@@ -307,6 +334,8 @@ def upload_csv():
     form = CSVUplodForm()
 
     if form.validate_on_submit():
+        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
+            return redirect(url_for('workflow.list_case'))
         filestream = form.file.data
         # filename = secure_filename(filestream.filename)
         df = pd.read_csv( filestream )

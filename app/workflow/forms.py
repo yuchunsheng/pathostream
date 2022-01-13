@@ -20,6 +20,7 @@ class CaseForm(FlaskForm):
     operator=SelectField('pathologist')
 
     submit = SubmitField('Submit')
+    cancel = SubmitField('Cancel')
 
 class UpdateCaseForm(FlaskForm):
     cp_num = StringField('cp_num')
@@ -34,6 +35,7 @@ class UpdateCaseForm(FlaskForm):
     pcu = FloatField('PCU')
     operator=SelectField('pathologist')
     submit = SubmitField('Update')
+    cancel = SubmitField('Cancel')
 
 class RejectCaseForm(FlaskForm):
     cp_num = StringField('cp_num', render_kw={'disabled':''})
@@ -50,7 +52,9 @@ class RejectCaseForm(FlaskForm):
 
 
     submit = SubmitField('Reject')
+    cancel = SubmitField('Cancel')
 
 class CSVUplodForm(FlaskForm):
     file = FileField('CSV File', validators=[FileRequired('no file!')])
     submit = SubmitField('Submit')
+    cancel = SubmitField('Cancel')
