@@ -1,8 +1,10 @@
+from distutils.text_file import TextFile
 from flask_wtf.form import FlaskForm
 from flask_wtf.file import  FileRequired
 from wtforms.fields.choices import SelectField
 from wtforms.fields.numeric import FloatField, IntegerField
 from wtforms.fields.simple import FileField, StringField, SubmitField
+from wtforms import BooleanField, TextAreaField
 
 
 
@@ -49,7 +51,7 @@ class RejectCaseForm(FlaskForm):
     location = StringField('location', render_kw={'disabled':''})
 
     pcu = FloatField('PCU')
-
+    comments = TextAreaField('Comments')
 
     submit = SubmitField('Reject')
     cancel = SubmitField('Cancel')
@@ -57,4 +59,3 @@ class RejectCaseForm(FlaskForm):
 class CSVUplodForm(FlaskForm):
     file = FileField('CSV File', validators=[FileRequired('no file!')])
     submit = SubmitField('Submit')
-    cancel = SubmitField('Cancel')

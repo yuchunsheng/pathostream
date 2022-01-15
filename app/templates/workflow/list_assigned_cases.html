@@ -22,8 +22,8 @@
                     <th width="15%"> specialty </th>
                     <th width="15%"> location </th>
                     <th width="15%"> PCU </th>
-                    <th width="15%"> Pathologist </th>
-                    
+                    <th width="15%"> Status </th>
+                    <th width="15%"> Comments </th>
                     <th width="15%"> Edit </th>
                     <th width="15%"> Delete </th>
                   </tr>
@@ -42,6 +42,7 @@
                     <td> {{ case.location }} </td>
                     <td> {{ case.PCU }} </td>
                     <td>{{case.status}}</td>
+                    <td>{{case.comments}}</td>
                     <td>
                       <a href="{{url_for('workflow.accept_case', id=case.id)}}">
                         <i class="fa fa-pencil"></i> Accept

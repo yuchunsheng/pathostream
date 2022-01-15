@@ -65,7 +65,7 @@ class Role(db.Model):
         self.permissions = 0
 
     def has_permission(self, perm):
-        return self.permissions & perm == perm
+        return self.permissions & self.permissions == perm
 
     def __repr__(self):
         return f"<Role {self.name}>"
@@ -166,6 +166,7 @@ class Case(db.Model):
     specialty = db.Column(db.String(20))
     location = db.Column(db.String(20))
     PCU = db.Column(db.Float, default = 0)
+    comments = db.Column(db.Text)
 
     status = db.Column(db.String(10))
     assignee_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)

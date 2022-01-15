@@ -30,7 +30,7 @@ def get_next_page():
     if current_user.is_assignee():
         next_url = ('workflow.list_case')
     if current_user.is_pathologist():
-        next_url = ('workflow.assigned_cases')
+        next_url = ('workflow.list_assigned_cases')
     if current_user.is_supervisor():
         next_url = 'workflow.list_rejected_cases'
         

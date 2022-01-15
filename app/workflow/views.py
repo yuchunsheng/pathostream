@@ -72,6 +72,8 @@ def paginate(obj=None, page=None, per_page=None, error_out=True, max_per_page=No
 @workflow.route('/list_case', methods=['GET'])
 @login_required
 def list_case():
+    if not current_user.is_assignee():
+        return redirect(url_for('main.index'))
     # cases = Case.query.filter(Case.assignee_id == current_user.id)  
     # cases = Case.query.filter( (Case.status=='Created') | (Case.status=='Assigned')).all()  
     p = db.session.query(Case.operator_id.label('operator_id'), db.func.sum(Case.PCU).label('total_pcu')
@@ -112,11 +114,13 @@ def list_case():
                             prev_url=None, return_page = None)
 
 
-@workflow.route('/assigned_cases', methods=['GET'])
+@workflow.route('/list_assigned_cases', methods=['GET'])
 @login_required
-def assigned_cases():
+def list_assigned_cases():
+    if not current_user.is_pathologist():
+        return redirect(url_for('main.index'))
     cases = Case.query.filter(Case.operator_id == current_user.id)     
-    return render_template('workflow/assigned_cases.html', title='Home', cases = cases)
+    return render_template('workflow/list_assigned_cases.html', title='Home', cases = cases)
 
 @workflow.route('/accept_case/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -133,10 +137,10 @@ def reject_case(id):
     form = RejectCaseForm()
     if form.validate_on_submit():
         if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
-            return redirect(url_for('workflow.list_rejected_cases'))
+            return redirect(url_for('workflow.assigned_cases'))
         rejected_case.status = CaseStatus.Rejected
-        print(form.pcu.data)
         rejected_case.PCU = form.pcu.data
+        rejected_case.comments = form.comments.data
 
         db.session.commit() 
         return redirect(url_for('workflow.assigned_cases'))
@@ -151,12 +155,15 @@ def reject_case(id):
     form.specialty.data=rejected_case.specialty
     form.location.data=rejected_case.location
     form.pcu.data=rejected_case.PCU
+    form.comments.data = rejected_case.comments
 
     return render_template('workflow/reject_case.html', title='Reject', form=form)
 
 @workflow.route('/list_rejected_cases', methods=['GET'])
 @login_required
 def list_rejected_cases():
+    if not current_user.is_supervisor():
+        return redirect(url_for('main.index'))
     cases = Case.query.filter(Case.status == CaseStatus.Rejected)     
     return render_template('workflow/list_rejected_cases.html', title='Home', cases = cases)
 
@@ -175,9 +182,10 @@ def update_approve_case(id):
     form = RejectCaseForm()
     if form.validate_on_submit():
         if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
-            return redirect(url_for('workflow.list_case'))
+            return redirect(url_for('workflow.list_rejected_cases'))
         rejected_case.status = CaseStatus.Rejected
         rejected_case.PCU = form.pcu.data
+        rejected_case.comments = form.comments.data
         db.session.commit() 
         return redirect(url_for('workflow.list_rejected_cases'))
 
@@ -191,6 +199,7 @@ def update_approve_case(id):
     form.specialty.data=rejected_case.specialty
     form.location.data=rejected_case.location
     form.pcu.data=rejected_case.PCU
+    form.comments.data = rejected_case.comments
 
     return render_template('workflow/update_approve_case.html', title='Reject', form=form)
 
@@ -334,8 +343,7 @@ def upload_csv():
     form = CSVUplodForm()
 
     if form.validate_on_submit():
-        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
-            return redirect(url_for('workflow.list_case'))
+
         filestream = form.file.data
         # filename = secure_filename(filestream.filename)
         df = pd.read_csv( filestream )
@@ -370,6 +378,6 @@ def upload_csv():
         db.session.add_all(cases)
         db.session.commit()
 
-        return redirect(url_for('main.index'))
+        return redirect(url_for('workflow.list_case'))
     
     return render_template('workflow/upload_csv.html', title='Upload CSV', form=form)
