@@ -9,7 +9,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_RECORD_QUERIES = True
 
-    PATHOSTREAM_CASES_PER_PAGE = 3
+    PATHOSTREAM_CASES_PER_PAGE = 10
 
     @staticmethod
     def init_app(app):

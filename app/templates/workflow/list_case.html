@@ -52,10 +52,9 @@
                     <td> {{ case.specialty }} </td>
                     <td> {{ case.location }} </td>
                     <td> {{ case.PCU }} </td>
-                    <td>{{case.comments}}</td>
-
                     <td>{{case.operator_name}} </td>
                     <td>{{case.total_pcu}}</td>
+                    <td>{{case.comments}}</td>
                     <td>
                       <a href="{{url_for('workflow.edit_case', id=case.id, page=return_page)}}">
                         <i class="fa fa-pencil"></i> Edit
