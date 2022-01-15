@@ -128,7 +128,7 @@ def accept_case(id):
     accepted_case = Case.query.get_or_404(id)
     accepted_case.status = CaseStatus.Accepted
     db.session.commit()   
-    return redirect(url_for('workflow.assigned_cases'))
+    return redirect(url_for('workflow.list_assigned_cases'))
 
 @workflow.route('/reject_case/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -137,13 +137,13 @@ def reject_case(id):
     form = RejectCaseForm()
     if form.validate_on_submit():
         if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
-            return redirect(url_for('workflow.assigned_cases'))
+            return redirect(url_for('workflow.list_assigned_cases'))
         rejected_case.status = CaseStatus.Rejected
         rejected_case.PCU = form.pcu.data
         rejected_case.comments = form.comments.data
 
         db.session.commit() 
-        return redirect(url_for('workflow.assigned_cases'))
+        return redirect(url_for('workflow.list_assigned_cases'))
 
     form.cp_num.data=rejected_case.cp_num
     form.specimen_class.data=rejected_case.specimen_class
